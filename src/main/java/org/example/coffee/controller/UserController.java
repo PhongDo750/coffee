@@ -22,6 +22,7 @@ public class UserController {
         return userService.signUp(userRequest);
     }
 
+    @CrossOrigin(origins = "http://localhost:63342")
     @Operation(summary = "Đăng nhập")
     @PostMapping("/log-in")
     public ResponseEntity logIn(@RequestBody UserRequest logInRequest) {
