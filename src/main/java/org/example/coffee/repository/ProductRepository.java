@@ -13,4 +13,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     Page<ProductEntity> findAll(Pageable pageable);
 
     Page<ProductEntity> findAllByIdIn(List<Long> productIds, Pageable pageable);
+
+    List<ProductEntity> findAllByIdIn(List<Long> productIds);
 }
