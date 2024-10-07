@@ -2,15 +2,14 @@ package org.example.coffee.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.example.coffee.dto.category.CategoryOutput;
 import org.example.coffee.dto.product.ProductInput;
 import org.example.coffee.dto.product.ProductOutput;
-import org.example.coffee.dto.productCategoryMap.ProductCategoryMapRequest;
+import org.example.coffee.service.CommentService;
 import org.example.coffee.service.ProductService;
-import org.springframework.http.ResponseEntity;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -18,6 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/product")
 public class ProductController {
     private final ProductService productService;
+    private final CommentService commentService;
 
     @Operation(summary = "thêm vào sản phẩm")
     @PostMapping("/create")
@@ -43,33 +43,36 @@ public class ProductController {
 
     @Operation(summary = "Lấy ra sản phẩm của shop")
     @GetMapping("/get-products")
-    public List<ProductOutput> getProducts() {
-        return productService.getProducts();
+    public Page<ProductOutput> getProducts(Pageable pageable) {
+        return productService.getProducts(pageable);
     }
 
-    @PostMapping("/add-to-category")
-    public ResponseEntity<String> addProductToCategory(
-            @RequestHeader("Authorization") String accessToken,
-            @RequestBody ProductCategoryMapRequest productCategoryMapRequest) {
-        productService.addProductToCategory(
-                accessToken,
-                productCategoryMapRequest);
-        return ResponseEntity.ok("Product added to category successfully");
+    @Operation(summary = "Lấy sản phẩm theo category")
+    @GetMapping("/get-products-by-category")
+    public Page<ProductOutput> getProductsByCategory(@RequestParam Long categoryId,
+                                                     @ParameterObject Pageable pageable) {
+        return productService.getProductsByCategory(pageable, categoryId);
     }
 
-    @DeleteMapping("/remove-from-category")
-    public ResponseEntity<String> removeProductFromCategory(
-            @RequestHeader("Authorization") String accessToken,
-            @RequestBody ProductCategoryMapRequest productCategoryMapRequest) {
-        productService.removeProductFromCategory(
-                accessToken,
-                productCategoryMapRequest);
-        return ResponseEntity.ok("Product removed from category successfully");
+    @Operation(summary = "Thêm sản phẩm vào danh mục")
+    @PostMapping("/add-product-to-category")
+    public void addProductToCategory(@RequestHeader("Authorization") String accessToken,
+                                     @RequestParam Long productId,
+                                     @RequestParam Long categoryId) {
+        productService.addProductToCategory(accessToken, productId, categoryId);
     }
 
-    @GetMapping("/{productId}/categories")
-    public ResponseEntity<List<CategoryOutput>> getCategoriesByProduct(@PathVariable Long productId) {
-        List<CategoryOutput> categories = productService.getCategoriesByProduct(productId);
-        return ResponseEntity.ok(categories);
+    @Operation(summary = "Xem chi tiết sản phẩm")
+    @GetMapping("/get-details")
+    public ProductOutput getProductDetails(@RequestParam Long productId) {
+        return productService.getProductDetails(productId);
+    }
+
+    @Operation(summary = "Xóa sản phẩm trong category")
+    @DeleteMapping("/delete-product-from-category")
+    public void deleteProductFromCategory(@RequestHeader("Authorization") String accessToken,
+                                          @RequestParam Long categoryId,
+                                          @RequestParam Long productId) {
+        productService.removeProductFromCategory(accessToken, categoryId, productId);
     }
 }

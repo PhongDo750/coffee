@@ -8,15 +8,12 @@ import lombok.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "tbl_product")
+@Table(name = "tbl_product_category_map")
 @Builder
-public class ProductEntity {
+public class ProductCategoryMapEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    @Column(length = 1000)
-    private String description;
-    private Integer price;
-    private String image;
+    private Long productId;
+    private Long categoryId;
 }

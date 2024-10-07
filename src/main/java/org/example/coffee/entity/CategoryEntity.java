@@ -5,18 +5,14 @@ import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
+@Setter
 @Entity
-@Table(name = "tbl_product")
+@Table(name = "tbl_category")
 @Builder
-public class ProductEntity {
+public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    @Column(length = 1000)
-    private String description;
-    private Integer price;
-    private String image;
 }

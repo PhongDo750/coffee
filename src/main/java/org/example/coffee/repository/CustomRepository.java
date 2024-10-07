@@ -2,6 +2,7 @@ package org.example.coffee.repository;
 
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
+import org.example.coffee.entity.CartMapEntity;
 import org.example.coffee.entity.CategoryEntity;
 import org.example.coffee.entity.ProductEntity;
 import org.example.coffee.entity.UserEntity;
@@ -13,6 +14,7 @@ public class CustomRepository {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final CartMapRepository cartMapRepository;
 
     public UserEntity getUserBy(Long userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -28,6 +30,12 @@ public class CustomRepository {
 
     public CategoryEntity getCategoryBy(Long categoryId) {
         return categoryRepository.findById(categoryId).orElseThrow(
+                () -> new RuntimeException(Common.ACTION_FAIL)
+        );
+    }
+
+    public CartMapEntity getCartMap(Long cartMapId) {
+        return cartMapRepository.findById(cartMapId).orElseThrow(
                 () -> new RuntimeException(Common.ACTION_FAIL)
         );
     }

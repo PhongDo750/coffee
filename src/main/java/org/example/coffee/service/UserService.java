@@ -3,6 +3,7 @@ package org.example.coffee.service;
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.user.ChangeInfoUserRequest;
+import org.example.coffee.dto.user.UserOutput;
 import org.example.coffee.dto.user.UserRequest;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.mapper.UserMapper;
@@ -34,7 +35,7 @@ public class UserService {
         userEntity.setFullName("USER" + uuid);
         userEntity.setIsShop(Boolean.FALSE);
         userRepository.save(userEntity);
-        return TokenHelper.generateToken(userEntity);
+        return "True";
     }
 
     @Transactional
@@ -57,5 +58,17 @@ public class UserService {
         userMapper.updateEntityFromInput(userEntity,changeInfoUserRequest);
         userEntity.setPhoneNumber(changeInfoUserRequest.getPhoneNumber());
         userRepository.save(userEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public UserOutput getInformation(String accessToken) {
+        Long userId = TokenHelper.getUserIdFromToken(accessToken);
+        UserEntity userEntity = customRepository.getUserBy(userId);
+        return UserOutput.builder()
+                .fullName(userEntity.getFullName())
+                .phoneNumber(userEntity.getPhoneNumber())
+                .email(userEntity.getEmail())
+                .imageUrl(userEntity.getImage())
+                .build();
     }
 }
