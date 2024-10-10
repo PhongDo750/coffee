@@ -20,13 +20,15 @@ public class Common {
     public static final String OLD_EVENT = "OLD_EVENT";
     public static final String CANCELLED = "CANCELLED";
     public static final String ALL = "ALL";
-    public static final String WAIT_FOR_PAY = "WAIT_FOR_PAY";
-    public static final String TRANSPORT = "TRANSPORT";
-    public static final String WAITING_FOR_DELIVERY = "WAITING_FOR_DELIVERY";
-    public static final String COMPLETE = "COMPLETE";
+    public static final String PENDING_PAYMENT = "PENDING_PAYMENT";
+    public static final String SHIPPING = "SHIPPING";
+    public static final String WAITING_DELIVERY = "WAITING_DELIVERY";
+    public static final String COMPLETED = "COMPLETED";
+    public static final String CANCELED = "CANCELED";
     public static final String RETURN_REFUND = "RETURN_REFUND";
     public static final String LIKE = "LIKE";
     public static final String COMMENT = "COMMENT";
     public static final String ORDER = "ORDER";
     public static final String DESC = "DESC";
+    public static final String SUCCESS = "SUCCESS";
 }

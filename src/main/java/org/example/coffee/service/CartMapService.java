@@ -119,6 +119,7 @@ public class CartMapService {
                     .nameProduct(productEntity.getName())
                     .price(productEntity.getPrice())
                     .totalPrice(productEntity.getPrice() * cartMapEntity.getQuantityOrder())
+                    .imageUrl(productEntity.getImage())
                     .build();
             cartOutputs.add(cartOutput);
         }

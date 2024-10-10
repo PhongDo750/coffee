@@ -15,4 +15,6 @@ public interface CartMapRepository extends JpaRepository<CartMapEntity, Long> {
     List<CartMapEntity> findAllByIdIn(List<Long> cartIds);
 
     CartMapEntity findByProductIdAndUserId(Long productId, Long userId);
+
+    void deleteAllByIdIn(List<Long> cartIds);
 }

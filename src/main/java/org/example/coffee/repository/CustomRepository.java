@@ -2,10 +2,7 @@ package org.example.coffee.repository;
 
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
-import org.example.coffee.entity.CartMapEntity;
-import org.example.coffee.entity.CategoryEntity;
-import org.example.coffee.entity.ProductEntity;
-import org.example.coffee.entity.UserEntity;
+import org.example.coffee.entity.*;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,6 +12,7 @@ public class CustomRepository {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final CartMapRepository cartMapRepository;
+    private final UserOrderRepository userOrderRepository;
 
     public UserEntity getUserBy(Long userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -36,6 +34,12 @@ public class CustomRepository {
 
     public CartMapEntity getCartMap(Long cartMapId) {
         return cartMapRepository.findById(cartMapId).orElseThrow(
+                () -> new RuntimeException(Common.ACTION_FAIL)
+        );
+    }
+
+    public UserOrderEntity getUserOrder(Long orderId) {
+        return userOrderRepository.findById(orderId).orElseThrow(
                 () -> new RuntimeException(Common.ACTION_FAIL)
         );
     }
