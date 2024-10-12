@@ -1,7 +1,6 @@
 package org.example.coffee.service;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.cart.CartInput;
 import org.example.coffee.dto.cart.CartOutput;
@@ -60,7 +59,8 @@ public class CartMapService {
     public void removeProductFromCart(String accessToken, Long cartId) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
-        if (userEntity.getIsShop().equals(Boolean.TRUE)) {
+        CartMapEntity cartMapEntity = customRepository.getCartMap(cartId);
+        if (userEntity.getIsShop().equals(Boolean.TRUE) || !cartMapEntity.getUserId().equals(userId)) {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
 

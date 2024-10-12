@@ -13,6 +13,7 @@ public class CustomRepository {
     private final CategoryRepository categoryRepository;
     private final CartMapRepository cartMapRepository;
     private final UserOrderRepository userOrderRepository;
+    private final CommentRepository commentRepository;
 
     public UserEntity getUserBy(Long userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -40,6 +41,12 @@ public class CustomRepository {
 
     public UserOrderEntity getUserOrder(Long orderId) {
         return userOrderRepository.findById(orderId).orElseThrow(
+                () -> new RuntimeException(Common.ACTION_FAIL)
+        );
+    }
+
+    public CommentEntity getCommentBy(Long commentId) {
+        return commentRepository.findById(commentId).orElseThrow(
                 () -> new RuntimeException(Common.ACTION_FAIL)
         );
     }

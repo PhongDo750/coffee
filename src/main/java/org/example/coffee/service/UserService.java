@@ -3,6 +3,7 @@ package org.example.coffee.service;
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.user.ChangeInfoUserRequest;
+import org.example.coffee.dto.user.TokenResponse;
 import org.example.coffee.dto.user.UserOutput;
 import org.example.coffee.dto.user.UserRequest;
 import org.example.coffee.entity.UserEntity;
@@ -39,14 +40,18 @@ public class UserService {
     }
 
     @Transactional
-    public String logIn(UserRequest logInRequest) {
+    public TokenResponse logIn(UserRequest logInRequest) {
         UserEntity userEntity = userRepository.findByUsername(logInRequest.getUsername());
         if(Objects.isNull(userEntity)) {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
         String currentHashedPassword = userEntity.getPassword();
         if(BCrypt.checkpw(logInRequest.getPassword(),currentHashedPassword)) {
-            return TokenHelper.generateToken(userEntity);
+            TokenResponse tokenResponse = TokenResponse.builder()
+                    .accessToken(TokenHelper.generateToken(userEntity))
+                    .isShop(userEntity.getIsShop())
+                    .build();
+            return tokenResponse;
         }
         throw new RuntimeException(Common.INCORRECT_PASSWORD);
     }

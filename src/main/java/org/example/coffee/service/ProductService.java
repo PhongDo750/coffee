@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.product.ProductInput;
 import org.example.coffee.dto.product.ProductOutput;
+import org.example.coffee.entity.CommentEntity;
 import org.example.coffee.entity.ProductCategoryMapEntity;
 import org.example.coffee.entity.ProductEntity;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.mapper.ProductMapper;
+import org.example.coffee.repository.CommentRepository;
 import org.example.coffee.repository.CustomRepository;
 import org.example.coffee.repository.ProductCategoryRepository;
 import org.example.coffee.repository.ProductRepository;
@@ -28,6 +30,7 @@ public class ProductService {
     private final CustomRepository customRepository;
     private final ProductMapper productMapper;
     private final ProductCategoryRepository productCategoryRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public void createProduct(String accessToken, ProductInput productInput) {
@@ -141,12 +144,18 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductOutput getProductDetails(Long productId) {
         ProductEntity productEntity = customRepository.getProductBy(productId);
+        List<CommentEntity> commentEntities = commentRepository.findAllByProductId(productId);
+        double averageRating = (double) Math.round(commentEntities
+                .stream()
+                .mapToLong(CommentEntity::getRating)
+                .average().orElse(0.0) * 10) / 10;
         return ProductOutput.builder()
                 .productId(productEntity.getId())
                 .name(productEntity.getName())
                 .price(productEntity.getPrice())
                 .description(productEntity.getDescription())
                 .image(productEntity.getImage())
+                .averageRatting(averageRating)
                 .build();
     }
 }

@@ -14,4 +14,5 @@ public class ProductOutput {
     private String description;
     private Integer price;
     private String image;
+    private Double averageRatting;
 }

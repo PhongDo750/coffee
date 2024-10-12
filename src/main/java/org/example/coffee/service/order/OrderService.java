@@ -94,7 +94,7 @@ public class OrderService {
                         .price(productOrderMapEntity.getPrice())
                         .totalPrice(productOrderMapEntity.getTotalPrice())
                         .build();
-                totalPrice += productOrderOutput.getPrice();
+                totalPrice += productOrderOutput.getTotalPrice();
                 productOrderOutputs.add(productOrderOutput);
             }
             if (Objects.isNull(stateOrderEntity)) {

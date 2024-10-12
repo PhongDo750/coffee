@@ -3,6 +3,7 @@ package org.example.coffee.service.order;
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.order.CancelOrderInput;
+import org.example.coffee.dto.order.CancelOrderOutput;
 import org.example.coffee.dto.order.ProductOrderOutput;
 import org.example.coffee.dto.order.ProductOrdersOutput;
 import org.example.coffee.entity.ProductOrderMapEntity;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,22 +37,25 @@ public class ShopOrderService {
     private final StateOrderRepository stateOrderRepository;
 
     @Transactional(readOnly = true)
-    public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable) {
+    public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable, String state) {
         Long shopId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(shopId);
         if (userEntity.getIsShop().equals(Boolean.FALSE)) {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
-        List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByState(Common.PENDING_PAYMENT);
+        List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByState(state);
         List<Long> orderIds = userOrderEntities.stream().map(UserOrderEntity::getId).collect(Collectors.toList());
         Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
                 .findAllByOrderIdIn(orderIds, pageable);
         Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
                 .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
+        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderRepository.findAllByOrderIdIn(orderIds)
+                .stream().collect(Collectors.toMap(StateOrderEntity::getOrderId, Function.identity()));
 
         List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
-        for (Long orderId : orderIds) {
-            List<ProductOrderMapEntity> productOrderMapEntityList = productOrderMapEntityMap.get(orderId);
+        for (UserOrderEntity userOrderEntity : userOrderEntities) {
+            List<ProductOrderMapEntity> productOrderMapEntityList = productOrderMapEntityMap.get(userOrderEntity.getId());
+            StateOrderEntity stateOrderEntity = stateOrderEntityMap.get(userOrderEntity.getId());
             List<ProductOrderOutput> productOrderOutputs = new ArrayList<>();
             int totalPrice = 0;
             for (ProductOrderMapEntity productOrderMapEntity : productOrderMapEntityList) {
@@ -61,16 +67,31 @@ public class ShopOrderService {
                         .price(productOrderMapEntity.getPrice())
                         .totalPrice(productOrderMapEntity.getTotalPrice())
                         .build();
-                totalPrice += productOrderOutput.getPrice();
+                totalPrice += productOrderOutput.getTotalPrice();
                 productOrderOutputs.add(productOrderOutput);
             }
-            ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
-                    .orderId(orderId)
-                    .productOrderOutputs(productOrderOutputs)
-                    .state(Common.PENDING_PAYMENT)
-                    .totalPrice(totalPrice)
-                    .build();
-            productOrdersOutputs.add(productOrdersOutput);
+            if (Objects.isNull(stateOrderEntity)) {
+                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
+                        .orderId(userOrderEntity.getId())
+                        .productOrderOutputs(productOrderOutputs)
+                        .state(state)
+                        .totalPrice(totalPrice)
+                        .build();
+                productOrdersOutputs.add(productOrdersOutput);
+            } else {
+                CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
+                        .reason(stateOrderEntity.getReason())
+                        .cancelerId(stateOrderEntity.getCancelerId())
+                        .build();
+                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
+                        .orderId(userOrderEntity.getId())
+                        .productOrderOutputs(productOrderOutputs)
+                        .state(state)
+                        .totalPrice(totalPrice)
+                        .cancelOrderOutput(cancelOrderOutput)
+                        .build();
+                productOrdersOutputs.add(productOrdersOutput);
+            }
         }
         return new PageImpl<>(productOrdersOutputs, pageable, productOrderMapEntities.getTotalElements());
     }
@@ -96,7 +117,7 @@ public class ShopOrderService {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
 
-        UserOrderEntity userOrderEntity = customRepository.getUserOrder(shopId);
+        UserOrderEntity userOrderEntity = customRepository.getUserOrder(cancelOrderInput.getOrderId());
 
         userOrderEntity.setState(Common.CANCELED);
         StateOrderEntity stateOrderEntity = StateOrderEntity.builder()

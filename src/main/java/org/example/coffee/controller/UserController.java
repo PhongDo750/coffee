@@ -26,8 +26,8 @@ public class UserController {
 
     @Operation(summary = "Đăng nhập")
     @PostMapping("/log-in")
-    public ResponseEntity logIn(@RequestBody UserRequest logInRequest) {
-        return new ResponseEntity(new TokenResponse(userService.logIn(logInRequest)), HttpStatus.OK);
+    public TokenResponse logIn(@RequestBody UserRequest logInRequest) {
+        return userService.logIn(logInRequest);
     }
 
     @Operation(summary = "Thay đổi thông tin người dùng")
