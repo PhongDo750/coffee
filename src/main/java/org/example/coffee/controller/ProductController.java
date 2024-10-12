@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @CrossOrigin("*")
@@ -72,5 +74,12 @@ public class ProductController {
                                           @RequestParam Long categoryId,
                                           @RequestParam Long productId) {
         productService.removeProductFromCategory(accessToken, categoryId, productId);
+    }
+
+    @Operation(summary = "Lấy sản phẩm không thuộc vào category")
+    @GetMapping("/get-products-not-in-category")
+    public List<ProductOutput> getProductsNotInCategory(@RequestParam Long categoryId,
+                                                        @RequestHeader("Authorization") String accessToken) {
+        return productService.getProductsNotInCategory(accessToken, categoryId);
     }
 }

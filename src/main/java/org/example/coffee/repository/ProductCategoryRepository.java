@@ -13,4 +13,6 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     void deleteByCategoryIdAndProductId(Long categoryId, Long productId);
 
     void deleteAllByCategoryId(Long categoryId);
+
+    boolean existsByCategoryIdAndProductId(Long categoryId, Long productId);
 }

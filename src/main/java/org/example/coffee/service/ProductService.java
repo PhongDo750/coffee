@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -122,6 +123,11 @@ public class ProductService {
         if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
+
+        if (Boolean.TRUE.equals(productCategoryRepository.existsByCategoryIdAndProductId(categoryId, productId))) {
+            throw new RuntimeException(Common.ACTION_FAIL);
+        }
+
         ProductCategoryMapEntity productCategoryMapEntity = ProductCategoryMapEntity.builder()
                 .categoryId(categoryId)
                 .productId(productId)
@@ -131,7 +137,35 @@ public class ProductService {
     }
 
     @Transactional
-    public void removeProductFromCategory(String accessToken, Long productId, Long categoryId) {
+    public List<ProductOutput> getProductsNotInCategory(String accessToken, Long categoryId) {
+        Long userId = TokenHelper.getUserIdFromToken(accessToken);
+        UserEntity shopEntity = customRepository.getUserBy(userId);
+        if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
+            throw new RuntimeException(Common.ACTION_FAIL);
+        }
+
+        List<ProductCategoryMapEntity> productCategoryMapEntities = productCategoryRepository
+                .findAllByCategoryId(categoryId);
+        List<Long> productIds = productCategoryMapEntities.stream()
+                .map(ProductCategoryMapEntity::getProductId).collect(Collectors.toList());
+
+        List<ProductEntity> productEntities = (productIds.isEmpty())
+                ? productRepository.findAll() : productRepository.findAllByIdNotIn(productIds);
+        List<ProductOutput> productOutputs = new ArrayList<>();
+        for (ProductEntity productEntity : productEntities) {
+            ProductOutput productOutput = ProductOutput.builder()
+                    .productId(productEntity.getId())
+                    .name(productEntity.getName())
+                    .price(productEntity.getPrice())
+                    .image(productEntity.getImage())
+                    .build();
+            productOutputs.add(productOutput);
+        }
+        return productOutputs;
+    }
+
+    @Transactional
+    public void removeProductFromCategory(String accessToken, Long categoryId, Long productId) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity shopEntity = customRepository.getUserBy(userId);
         if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
