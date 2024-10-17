@@ -2,13 +2,8 @@ package org.example.coffee.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.example.coffee.dto.user.ChangeInfoUserRequest;
-import org.example.coffee.dto.user.TokenResponse;
-import org.example.coffee.dto.user.UserOutput;
-import org.example.coffee.dto.user.UserRequest;
+import org.example.coffee.dto.user.*;
 import org.example.coffee.service.UserService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,8 +15,8 @@ public class UserController {
 
     @Operation(summary = "Đăng kí tài khoản")
     @PostMapping("/sign-up")
-    public String signUp(@RequestBody UserRequest userRequest) {
-        return userService.signUp(userRequest);
+    public String signUp(@RequestBody SignUpRequest signUpRequest) {
+        return userService.signUp(signUpRequest);
     }
 
     @Operation(summary = "Đăng nhập")

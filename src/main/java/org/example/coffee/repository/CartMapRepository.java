@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CartMapRepository extends JpaRepository<CartMapEntity, Long> {
+public interface
+CartMapRepository extends JpaRepository<CartMapEntity, Long> {
     Page<CartMapEntity> findAllByUserId(Long userId, Pageable pageable);
 
     List<CartMapEntity> findAllByIdIn(List<Long> cartIds);

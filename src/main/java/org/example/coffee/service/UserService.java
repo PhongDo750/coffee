@@ -2,10 +2,7 @@ package org.example.coffee.service;
 
 import lombok.AllArgsConstructor;
 import org.example.coffee.common.Common;
-import org.example.coffee.dto.user.ChangeInfoUserRequest;
-import org.example.coffee.dto.user.TokenResponse;
-import org.example.coffee.dto.user.UserOutput;
-import org.example.coffee.dto.user.UserRequest;
+import org.example.coffee.dto.user.*;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.mapper.UserMapper;
 import org.example.coffee.repository.CustomRepository;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -26,14 +22,18 @@ public class UserService {
     private final CustomRepository customRepository;
 
     @Transactional
-    public String signUp(UserRequest signUpRequest) {
+    public String signUp(SignUpRequest signUpRequest) {
         if(Boolean.TRUE.equals(userRepository.existsByUsername(signUpRequest.getUsername()))) {
             throw new RuntimeException(Common.USERNAME_IS_EXISTS);
         }
         signUpRequest.setPassword(BCrypt.hashpw(signUpRequest.getPassword(), BCrypt.gensalt()));
-        UserEntity userEntity = userMapper.getEntityFromInput(signUpRequest);
-        UUID uuid = UUID.randomUUID();
-        userEntity.setFullName("USER" + uuid);
+        UserEntity userEntity = UserEntity.builder()
+                .username(signUpRequest.getUsername())
+                .password(signUpRequest.getPassword())
+                .fullName(signUpRequest.getFullName())
+                .email(signUpRequest.getEmail())
+                .phoneNumber(signUpRequest.getPhoneNumber())
+                .build();
         userEntity.setIsShop(Boolean.FALSE);
         userRepository.save(userEntity);
         return "True";
