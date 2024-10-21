@@ -26,7 +26,7 @@ public class ProductController {
     @PostMapping("/create")
     public void createProduct(@RequestHeader("Authorization") String accessToken,
                               @RequestPart("productInput") String productInputString,
-                              @RequestPart("image") MultipartFile multipartFile) throws JsonProcessingException {
+                              @RequestPart(value = "image", required = false) MultipartFile multipartFile) throws JsonProcessingException {
         ProductInput productInput;
         ObjectMapper objectMapper = new ObjectMapper();
         productInput = objectMapper.readValue(productInputString, ProductInput.class);

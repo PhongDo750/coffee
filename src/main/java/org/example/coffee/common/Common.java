@@ -32,6 +32,7 @@ public class Common {
     public static final String DESC = "DESC";
     public static final String SUCCESS = "SUCCESS";
 
+    public static final String IMAGE_DEFAULT = "http://res.cloudinary.com/dxdndamgg/image/upload/v1729500485/slerkr495gfnca9sdpq0.png";
     public static final String CLOUDINARY_NAME = "cloud_name";
     public static final String CLOUDINARY_NAME_VALUE = "dxdndamgg";
     public static final String CLOUDINARY_API_KEY = "api_key";

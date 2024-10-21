@@ -26,19 +26,19 @@ public class CloudinaryHelper {
 
     public static String uploadAndGetFileUrl(MultipartFile multipartFile){
         try {
-            File uploadedFile = convertMultiPartToFile(multipartFile);
-            Map uploadResult = cloudinary.uploader().uploadLarge(uploadedFile, ObjectUtils.emptyMap());
+//            File uploadedFile = convertMultiPartToFile(multipartFile);
+            Map uploadResult = cloudinary.uploader().uploadLarge(multipartFile.getInputStream(), ObjectUtils.emptyMap());
             return  uploadResult.get("url").toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
-        return convFile;
-    }
+//    private static File convertMultiPartToFile(MultipartFile file) throws IOException {
+//        File convFile = new File(file.getOriginalFilename());
+//        FileOutputStream fos = new FileOutputStream(convFile);
+//        fos.write(file.getBytes());
+//        fos.close();
+//        return convFile;
+//    }
 }

@@ -1,6 +1,7 @@
 package org.example.coffee.service;
 
 import lombok.AllArgsConstructor;
+import org.example.coffee.cloudinary.CloudinaryHelper;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.comment.CommentInput;
 import org.example.coffee.dto.comment.CommentOutput;
@@ -47,7 +48,10 @@ public class CommentService {
                 .productId(commentInput.getProductId())
                 .comment(commentInput.getComment())
                 .rating(commentInput.getRating())
-                .images(StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)))
+                .images(
+                        Objects.nonNull(multipartFiles) && !multipartFiles.isEmpty() ?
+                                StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)) : null
+                )
                 .createAt(LocalDateTime.now())
                 .build();
         commentRepository.save(commentEntity);
@@ -70,7 +74,9 @@ public class CommentService {
         }
 
         commentMapper.updateEntityFromInput(commentEntity, commentInput);
-        commentEntity.setImages(StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)));
+        if (Objects.nonNull(multipartFiles) && !multipartFiles.isEmpty()) {
+            commentEntity.setImages(StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)));
+        }
         commentRepository.save(commentEntity);
     }
 

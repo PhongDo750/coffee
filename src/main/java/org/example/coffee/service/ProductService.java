@@ -45,7 +45,9 @@ public class ProductService {
         }
 
         ProductEntity productEntity = productMapper.getEntityFromInput(productInput);
-        productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        if (Objects.nonNull(multipartFile) && !multipartFile.isEmpty()) {
+            productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        }
         productRepository.save(productEntity);
     }
 
@@ -60,7 +62,9 @@ public class ProductService {
 
         ProductEntity productEntity = customRepository.getProductBy(productId);
         productMapper.updateEntityFromInput(productEntity, productInput);
-        productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        if (Objects.nonNull(multipartFile) && !multipartFile.isEmpty()) {
+            productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        }
         productRepository.save(productEntity);
     }
 

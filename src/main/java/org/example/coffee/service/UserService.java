@@ -36,6 +36,7 @@ public class UserService {
                 .email(signUpRequest.getEmail())
                 .phoneNumber(signUpRequest.getPhoneNumber())
                 .build();
+        userEntity.setImage(Common.IMAGE_DEFAULT);
         userEntity.setIsShop(Boolean.FALSE);
         userRepository.save(userEntity);
         return "True";
@@ -64,7 +65,9 @@ public class UserService {
         UserEntity userEntity = customRepository.getUserBy(userId);
         userMapper.updateEntityFromInput(userEntity,changeInfoUserRequest);
         userEntity.setPhoneNumber(changeInfoUserRequest.getPhoneNumber());
-        userEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        if (Objects.nonNull(multipartFile) && !multipartFile.isEmpty()) {
+            userEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
+        }
         userRepository.save(userEntity);
     }
 
