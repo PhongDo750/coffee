@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +32,7 @@ public class OrderService {
     private final CartMapRepository cartMapRepository;
     private final CustomRepository customRepository;
     private final StateOrderRepository stateOrderRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public UserOrderOutput orderProducts(String accessToken, UserOrderInput userOrderInput) {
@@ -70,9 +68,19 @@ public class OrderService {
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, String state, Pageable pageable) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByUserIdAndState(userId, state);
-        List<Long> orderIds = userOrderEntities.stream().map(UserOrderEntity::getId).collect(Collectors.toList());
-        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderRepository.findAllByOrderIdIn(orderIds)
+        List<Long> orderIds = userOrderEntities.stream()
+                .sorted(Comparator.comparing(UserOrderEntity::getCreatedAt).reversed())
+                .map(UserOrderEntity::getId)
+                .collect(Collectors.toList());
+
+        List<StateOrderEntity> stateOrderEntities = stateOrderRepository.findAllByOrderIdIn(orderIds);
+
+        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderEntities
                 .stream().collect(Collectors.toMap(StateOrderEntity::getOrderId, Function.identity()));
+
+        Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
+                stateOrderEntities.stream().map(StateOrderEntity::getCancelerId).collect(Collectors.toSet())
+        ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
 
         Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
                 .findAllByOrderIdIn(orderIds, pageable);
@@ -106,9 +114,10 @@ public class OrderService {
                         .build();
                 productOrdersOutputs.add(productOrdersOutput);
             } else {
+                UserEntity userEntity = userEntityMap.get(stateOrderEntity.getCancelerId());
                 CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
                         .reason(stateOrderEntity.getReason())
-                        .cancelerId(stateOrderEntity.getCancelerId())
+                        .name(userEntity.getFullName())
                         .build();
                 ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
                         .orderId(orderId)

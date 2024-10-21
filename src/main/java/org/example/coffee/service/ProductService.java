@@ -1,6 +1,7 @@
 package org.example.coffee.service;
 
 import lombok.AllArgsConstructor;
+import org.example.coffee.cloudinary.CloudinaryHelper;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.product.ProductInput;
 import org.example.coffee.dto.product.ProductOutput;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,7 @@ public class ProductService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void createProduct(String accessToken, ProductInput productInput) {
+    public void createProduct(String accessToken, ProductInput productInput, MultipartFile multipartFile) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity shopEntity = customRepository.getUserBy(userId);
 
@@ -43,11 +45,12 @@ public class ProductService {
         }
 
         ProductEntity productEntity = productMapper.getEntityFromInput(productInput);
+        productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
         productRepository.save(productEntity);
     }
 
     @Transactional
-    public void updateProduct(String accessToken, ProductInput productInput, Long productId) {
+    public void updateProduct(String accessToken, ProductInput productInput, Long productId, MultipartFile multipartFile) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity shopEntity = customRepository.getUserBy(userId);
 
@@ -57,6 +60,7 @@ public class ProductService {
 
         ProductEntity productEntity = customRepository.getProductBy(productId);
         productMapper.updateEntityFromInput(productEntity, productInput);
+        productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
         productRepository.save(productEntity);
     }
 

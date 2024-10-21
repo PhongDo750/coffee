@@ -11,6 +11,4 @@ import java.util.List;
 @Repository
 public interface ProductOrderMapRepository extends JpaRepository<ProductOrderMapEntity, Long> {
     Page<ProductOrderMapEntity> findAllByOrderIdIn(List<Long> orderId, Pageable pageable);
-
-
 }

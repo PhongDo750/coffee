@@ -10,10 +10,7 @@ import org.example.coffee.entity.ProductOrderMapEntity;
 import org.example.coffee.entity.StateOrderEntity;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.entity.UserOrderEntity;
-import org.example.coffee.repository.CustomRepository;
-import org.example.coffee.repository.ProductOrderMapRepository;
-import org.example.coffee.repository.StateOrderRepository;
-import org.example.coffee.repository.UserOrderRepository;
+import org.example.coffee.repository.*;
 import org.example.coffee.token.TokenHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,12 +32,13 @@ public class ShopOrderService {
     private final ProductOrderMapRepository productOrderMapRepository;
     private final CustomRepository customRepository;
     private final StateOrderRepository stateOrderRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable, String state) {
         Long shopId = TokenHelper.getUserIdFromToken(accessToken);
-        UserEntity userEntity = customRepository.getUserBy(shopId);
-        if (userEntity.getIsShop().equals(Boolean.FALSE)) {
+        UserEntity shopEntity = customRepository.getUserBy(shopId);
+        if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
         List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByState(state);
@@ -49,8 +47,14 @@ public class ShopOrderService {
                 .findAllByOrderIdIn(orderIds, pageable);
         Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
                 .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
-        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderRepository.findAllByOrderIdIn(orderIds)
+        List<StateOrderEntity> stateOrderEntities = stateOrderRepository.findAllByOrderIdIn(orderIds);
+
+        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderEntities
                 .stream().collect(Collectors.toMap(StateOrderEntity::getOrderId, Function.identity()));
+
+        Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
+                stateOrderEntities.stream().map(StateOrderEntity::getCancelerId).collect(Collectors.toSet())
+        ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
 
         List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
         for (UserOrderEntity userOrderEntity : userOrderEntities) {
@@ -79,9 +83,10 @@ public class ShopOrderService {
                         .build();
                 productOrdersOutputs.add(productOrdersOutput);
             } else {
+                UserEntity userEntity = userEntityMap.get(stateOrderEntity.getCancelerId());
                 CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
                         .reason(stateOrderEntity.getReason())
-                        .cancelerId(stateOrderEntity.getCancelerId())
+                        .name(userEntity.getFullName())
                         .build();
                 ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
                         .orderId(userOrderEntity.getId())

@@ -1,5 +1,7 @@
 package org.example.coffee.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.example.coffee.dto.comment.CommentInput;
@@ -9,6 +11,9 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -20,16 +25,24 @@ public class CommentController {
     @Operation(summary = "tạo comment")
     @PostMapping("/create")
     public void createComment(@RequestHeader("Authorization") String accessToken,
-                              @RequestBody CommentInput commentInput) {
-        commentService.createComment(accessToken, commentInput);
+                              @RequestPart(name = "commentInput") String commentInputString,
+                              @RequestPart(name = "images", required = false) List<MultipartFile> multipartFiles) throws JsonProcessingException {
+        CommentInput commentInput;
+        ObjectMapper objectMapper = new ObjectMapper();
+        commentInput = objectMapper.readValue(commentInputString, CommentInput.class);
+        commentService.createComment(accessToken, commentInput, multipartFiles);
     }
 
     @Operation(summary = "Update comment")
     @PutMapping("/update")
     public void updateComment(@RequestHeader("Authorization") String accessToken,
                               @RequestParam Long commentId,
-                              @RequestBody CommentInput commentInput) {
-        commentService.updateComment(accessToken, commentId, commentInput);
+                              @RequestPart(name = "commentInput") String commentInputString,
+                              @RequestPart(name = "images", required = false) List<MultipartFile> multipartFiles) throws JsonProcessingException {
+        CommentInput commentInput;
+        ObjectMapper objectMapper = new ObjectMapper();
+        commentInput = objectMapper.readValue(commentInputString, CommentInput.class);
+        commentService.updateComment(accessToken, commentId, commentInput, multipartFiles);
     }
 
     @Operation(summary = "Lấy ra comment")

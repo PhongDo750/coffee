@@ -15,5 +15,4 @@ public class CommentInput {
     private Long productId;
     private String comment;
     private Long rating;
-    private List<String> imageUrls;
 }

@@ -8,7 +8,6 @@ import lombok.*;
 @Getter
 public class ChangeInfoUserRequest {
     private String fullName;
-    private String image;
     private String gender;
     private String email;
     private String phoneNumber;

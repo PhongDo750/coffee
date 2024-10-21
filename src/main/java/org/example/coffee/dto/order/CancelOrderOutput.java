@@ -8,6 +8,6 @@ import lombok.*;
 @Getter
 @Builder
 public class CancelOrderOutput {
-    private Long cancelerId;
+    private String name;
     private String reason;
 }

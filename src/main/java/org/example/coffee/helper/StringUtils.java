@@ -29,28 +29,4 @@ public class StringUtils {
         }
         return Arrays.asList(imageUrls.split(";"));
     }
-
-    public static String getStringFromListLong(List<Long> shoppingCartIds) {
-        if(Objects.isNull(shoppingCartIds) || shoppingCartIds.isEmpty()) {
-            return null;
-        }
-        StringBuilder result = new StringBuilder();
-        Integer index = 0;
-        for(Long shoppingCartId : shoppingCartIds) {
-            result.append(String.valueOf(shoppingCartId));
-            if(index != shoppingCartIds.size() - 1) {
-                result.append(";");
-            }
-            index++;
-        }
-        return result.toString();
-    }
-
-    public static List<Long> getListLongFromString(String shoppingCartIds) {
-        if(Objects.isNull(shoppingCartIds)) {
-            return new ArrayList<>();
-        }
-        return Arrays.asList(shoppingCartIds.split(";"))
-                .stream().map(Long::parseLong).collect(Collectors.toList());
-    }
 }

@@ -13,5 +13,4 @@ public class ProductInput {
     private String name;
     private String description;
     private Integer price;
-    private String image;
 }

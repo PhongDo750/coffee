@@ -6,6 +6,7 @@ import org.example.coffee.dto.comment.CommentInput;
 import org.example.coffee.dto.comment.CommentOutput;
 import org.example.coffee.entity.CommentEntity;
 import org.example.coffee.entity.UserEntity;
+import org.example.coffee.helper.FileHelper;
 import org.example.coffee.helper.StringUtils;
 import org.example.coffee.mapper.CommentMapper;
 import org.example.coffee.repository.CommentRepository;
@@ -16,8 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -32,7 +35,7 @@ public class CommentService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createComment(String accessToken, CommentInput commentInput) {
+    public void createComment(String accessToken, CommentInput commentInput, List<MultipartFile> multipartFiles) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
         if (userEntity.getIsShop().equals(Boolean.TRUE)) {
@@ -44,7 +47,7 @@ public class CommentService {
                 .productId(commentInput.getProductId())
                 .comment(commentInput.getComment())
                 .rating(commentInput.getRating())
-                .images(StringUtils.getStringFromList(commentInput.getImageUrls()))
+                .images(StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)))
                 .createAt(LocalDateTime.now())
                 .build();
         commentRepository.save(commentEntity);
@@ -53,7 +56,8 @@ public class CommentService {
     @Transactional
     public void updateComment(String accessToken,
                               Long commentId,
-                              CommentInput commentInput) {
+                              CommentInput commentInput,
+                              List<MultipartFile> multipartFiles) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
         if (userEntity.getIsShop().equals(Boolean.TRUE)) {
@@ -66,7 +70,7 @@ public class CommentService {
         }
 
         commentMapper.updateEntityFromInput(commentEntity, commentInput);
-        commentEntity.setImages(StringUtils.getStringFromList(commentInput.getImageUrls()));
+        commentEntity.setImages(StringUtils.getStringFromList(FileHelper.getImageUrls(multipartFiles)));
         commentRepository.save(commentEntity);
     }
 
