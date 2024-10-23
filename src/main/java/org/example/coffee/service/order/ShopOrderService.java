@@ -29,10 +29,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ShopOrderService {
     private final UserOrderRepository userOrderRepository;
-    private final ProductOrderMapRepository productOrderMapRepository;
     private final CustomRepository customRepository;
     private final StateOrderRepository stateOrderRepository;
-    private final UserRepository userRepository;
+    private final OrderService orderService;
 
     @Transactional(readOnly = true)
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable, String state) {
@@ -42,63 +41,7 @@ public class ShopOrderService {
             throw new RuntimeException(Common.ACTION_FAIL);
         }
         List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByState(state);
-        List<Long> orderIds = userOrderEntities.stream().map(UserOrderEntity::getId).collect(Collectors.toList());
-        Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
-                .findAllByOrderIdIn(orderIds, pageable);
-        Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
-                .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
-        List<StateOrderEntity> stateOrderEntities = stateOrderRepository.findAllByOrderIdIn(orderIds);
-
-        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderEntities
-                .stream().collect(Collectors.toMap(StateOrderEntity::getOrderId, Function.identity()));
-
-        Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
-                stateOrderEntities.stream().map(StateOrderEntity::getCancelerId).collect(Collectors.toSet())
-        ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
-
-        List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
-        for (UserOrderEntity userOrderEntity : userOrderEntities) {
-            List<ProductOrderMapEntity> productOrderMapEntityList = productOrderMapEntityMap.get(userOrderEntity.getId());
-            StateOrderEntity stateOrderEntity = stateOrderEntityMap.get(userOrderEntity.getId());
-            List<ProductOrderOutput> productOrderOutputs = new ArrayList<>();
-            int totalPrice = 0;
-            for (ProductOrderMapEntity productOrderMapEntity : productOrderMapEntityList) {
-                ProductOrderOutput productOrderOutput = ProductOrderOutput.builder()
-                        .productId(productOrderMapEntity.getProductId())
-                        .productName(productOrderMapEntity.getNameProduct())
-                        .image(productOrderMapEntity.getImage())
-                        .quantityOrder(productOrderMapEntity.getQuantityOrder())
-                        .price(productOrderMapEntity.getPrice())
-                        .totalPrice(productOrderMapEntity.getTotalPrice())
-                        .build();
-                totalPrice += productOrderOutput.getTotalPrice();
-                productOrderOutputs.add(productOrderOutput);
-            }
-            if (Objects.isNull(stateOrderEntity)) {
-                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
-                        .orderId(userOrderEntity.getId())
-                        .productOrderOutputs(productOrderOutputs)
-                        .state(state)
-                        .totalPrice(totalPrice)
-                        .build();
-                productOrdersOutputs.add(productOrdersOutput);
-            } else {
-                UserEntity userEntity = userEntityMap.get(stateOrderEntity.getCancelerId());
-                CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
-                        .reason(stateOrderEntity.getReason())
-                        .name(userEntity.getFullName())
-                        .build();
-                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
-                        .orderId(userOrderEntity.getId())
-                        .productOrderOutputs(productOrderOutputs)
-                        .state(state)
-                        .totalPrice(totalPrice)
-                        .cancelOrderOutput(cancelOrderOutput)
-                        .build();
-                productOrdersOutputs.add(productOrdersOutput);
-            }
-        }
-        return new PageImpl<>(productOrdersOutputs, pageable, productOrderMapEntities.getTotalElements());
+        return orderService.productOrdersOutputPage(userOrderEntities, pageable, state);
     }
 
     @Transactional

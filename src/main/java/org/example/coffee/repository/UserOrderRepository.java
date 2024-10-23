@@ -11,6 +11,5 @@ import java.util.List;
 public interface UserOrderRepository extends JpaRepository<UserOrderEntity, Long> {
     List<UserOrderEntity> findAllByUserIdAndState(Long userId, String state);
 
-    @Query("select u from UserOrderEntity u where u.state = :state order by u.createdAt desc")
     List<UserOrderEntity> findAllByState(String state);
 }

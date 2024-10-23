@@ -3,6 +3,8 @@ package org.example.coffee.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -19,4 +21,5 @@ public class ProductEntity {
     private String description;
     private Integer price;
     private String image;
+    private LocalDateTime createdAt;
 }

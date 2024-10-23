@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,6 +49,7 @@ public class ProductService {
         if (Objects.nonNull(multipartFile) && !multipartFile.isEmpty()) {
             productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
         }
+        productEntity.setCreatedAt(LocalDateTime.now());
         productRepository.save(productEntity);
     }
 
@@ -65,6 +67,7 @@ public class ProductService {
         if (Objects.nonNull(multipartFile) && !multipartFile.isEmpty()) {
             productEntity.setImage(CloudinaryHelper.uploadAndGetFileUrl(multipartFile));
         }
+        productEntity.setCreatedAt(LocalDateTime.now());
         productRepository.save(productEntity);
     }
 
@@ -78,6 +81,7 @@ public class ProductService {
         }
 
         productRepository.deleteById(productId);
+        productCategoryRepository.deleteAllByProductId(productId);
     }
 
     @Transactional(readOnly = true)

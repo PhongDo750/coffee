@@ -68,10 +68,40 @@ public class OrderService {
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, String state, Pageable pageable) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByUserIdAndState(userId, state);
+        return productOrdersOutputPage(userOrderEntities, pageable, state);
+    }
+
+    @Transactional
+    public void cancelOrder(String accessToken, CancelOrderInput cancelOrderInput) {
+        Long userId = TokenHelper.getUserIdFromToken(accessToken);
+        UserOrderEntity userOrderEntity = customRepository.getUserOrder(cancelOrderInput.getOrderId());
+        if (!userOrderEntity.getState().equals(Common.PENDING_PAYMENT) || !userId.equals(userOrderEntity.getUserId())) {
+            throw new RuntimeException(Common.ACTION_FAIL);
+        }
+
+        userOrderEntity.setState(Common.CANCELED);
+        StateOrderEntity stateOrderEntity = StateOrderEntity.builder()
+                .orderId(userOrderEntity.getId())
+                .reason(cancelOrderInput.getReason())
+                .cancelerId(userOrderEntity.getUserId())
+                .build();
+        userOrderRepository.save(userOrderEntity);
+        stateOrderRepository.save(stateOrderEntity);
+    }
+
+    public Page<ProductOrdersOutput> productOrdersOutputPage(List<UserOrderEntity> userOrderEntities, Pageable pageable, String state) {
         List<Long> orderIds = userOrderEntities.stream()
                 .sorted(Comparator.comparing(UserOrderEntity::getCreatedAt).reversed())
                 .map(UserOrderEntity::getId)
                 .collect(Collectors.toList());
+        Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
+                .findAllByOrderIdIn(orderIds, pageable);
+        if (Objects.isNull(productOrderMapEntities) || productOrderMapEntities.isEmpty()) {
+            return Page.empty();
+        }
+
+        Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
+                .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
 
         List<StateOrderEntity> stateOrderEntities = stateOrderRepository.findAllByOrderIdIn(orderIds);
 
@@ -81,11 +111,6 @@ public class OrderService {
         Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
                 stateOrderEntities.stream().map(StateOrderEntity::getCancelerId).collect(Collectors.toSet())
         ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
-
-        Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
-                .findAllByOrderIdIn(orderIds, pageable);
-        Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
-                .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
 
         List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
         for (Long orderId : orderIds) {
@@ -131,23 +156,5 @@ public class OrderService {
         }
 
         return new PageImpl<>(productOrdersOutputs, pageable, productOrderMapEntities.getTotalElements());
-    }
-
-    @Transactional
-    public void cancelOrder(String accessToken, CancelOrderInput cancelOrderInput) {
-        Long userId = TokenHelper.getUserIdFromToken(accessToken);
-        UserOrderEntity userOrderEntity = customRepository.getUserOrder(cancelOrderInput.getOrderId());
-        if (!userOrderEntity.getState().equals(Common.PENDING_PAYMENT) || !userId.equals(userOrderEntity.getUserId())) {
-            throw new RuntimeException(Common.ACTION_FAIL);
-        }
-
-        userOrderEntity.setState(Common.CANCELED);
-        StateOrderEntity stateOrderEntity = StateOrderEntity.builder()
-                .orderId(userOrderEntity.getId())
-                .reason(cancelOrderInput.getReason())
-                .cancelerId(userOrderEntity.getUserId())
-                .build();
-        userOrderRepository.save(userOrderEntity);
-        stateOrderRepository.save(stateOrderEntity);
     }
 }

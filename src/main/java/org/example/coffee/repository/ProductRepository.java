@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
-    @Query("select p from ProductEntity p order by p.id desc")
+    @Query("select p from ProductEntity p order by p.createdAt desc")
     Page<ProductEntity> findAll(Pageable pageable);
 
     Page<ProductEntity> findAllByIdIn(List<Long> productIds, Pageable pageable);
