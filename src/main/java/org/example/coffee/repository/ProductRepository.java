@@ -19,4 +19,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     List<ProductEntity> findAllByIdIn(List<Long> productIds);
 
     List<ProductEntity> findAllByIdNotIn(List<Long> productIds);
+
+    @Query("SELECT u FROM ProductEntity u WHERE u.name LIKE %?1%")
+    Page<ProductEntity> searchProductEntitiesByString(String search, Pageable pageable);
 }

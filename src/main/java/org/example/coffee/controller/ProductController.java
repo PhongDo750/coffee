@@ -93,4 +93,11 @@ public class ProductController {
                                                         @RequestHeader("Authorization") String accessToken) {
         return productService.getProductsNotInCategory(accessToken, categoryId);
     }
+
+    @Operation(summary = "Lấy sản phẩm theo tìm kiếm")
+    @GetMapping("/get-products-by-search")
+    public Page<ProductOutput> getProductsBy(@RequestParam String search,
+                                             @ParameterObject Pageable pageable) {
+        return productService.getProductsBySearch(search, pageable);
+    }
 }

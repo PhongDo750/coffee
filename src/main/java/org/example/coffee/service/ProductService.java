@@ -204,4 +204,26 @@ public class ProductService {
                 .averageRatting(averageRating)
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public Page<ProductOutput> getProductsBySearch(String search, Pageable pageable) {
+        Page<ProductEntity> productEntities = productRepository.searchProductEntitiesByString(search, pageable);
+        if (Objects.isNull(productEntities) || productEntities.isEmpty()) {
+            return Page.empty();
+        }
+
+        return productEntities.map(
+                productEntity -> {
+                    ProductOutput productOutput = ProductOutput.builder()
+                            .productId(productEntity.getId())
+                            .name(productEntity.getName())
+                            .price(productEntity.getPrice())
+                            .description(productEntity.getDescription())
+                            .image(productEntity.getImage())
+                            .build();
+
+                    return productOutput;
+                }
+        );
+    }
 }
