@@ -25,4 +25,6 @@ public class UserOrderEntity {
     private String paymentMethod;
     private Integer totalPrice;
     private LocalDateTime createdAt;
+    private String reasonCancellation;
+    private Long cancelerId;
 }

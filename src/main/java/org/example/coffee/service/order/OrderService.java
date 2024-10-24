@@ -31,8 +31,7 @@ public class OrderService {
     private final UserOrderMapper userOrderMapper;
     private final CartMapRepository cartMapRepository;
     private final CustomRepository customRepository;
-    private final StateOrderRepository stateOrderRepository;
-    private final UserRepository userRepository;
+    private final StateGeneration stateGeneration;
 
     @Transactional
     public UserOrderOutput orderProducts(String accessToken, UserOrderInput userOrderInput) {
@@ -68,7 +67,8 @@ public class OrderService {
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, String state, Pageable pageable) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByUserIdAndState(userId, state);
-        return productOrdersOutputPage(userOrderEntities, pageable, state);
+        StateOrder stateOrder = stateGeneration.findSateBy(state);
+        return stateOrder.getOrders(userOrderEntities, pageable, state);
     }
 
     @Transactional
@@ -80,81 +80,8 @@ public class OrderService {
         }
 
         userOrderEntity.setState(Common.CANCELED);
-        StateOrderEntity stateOrderEntity = StateOrderEntity.builder()
-                .orderId(userOrderEntity.getId())
-                .reason(cancelOrderInput.getReason())
-                .cancelerId(userOrderEntity.getUserId())
-                .build();
+        userOrderEntity.setCancelerId(userId);
+        userOrderEntity.setReasonCancellation(cancelOrderInput.getReason());
         userOrderRepository.save(userOrderEntity);
-        stateOrderRepository.save(stateOrderEntity);
-    }
-
-    public Page<ProductOrdersOutput> productOrdersOutputPage(List<UserOrderEntity> userOrderEntities, Pageable pageable, String state) {
-        List<Long> orderIds = userOrderEntities.stream()
-                .sorted(Comparator.comparing(UserOrderEntity::getCreatedAt).reversed())
-                .map(UserOrderEntity::getId)
-                .collect(Collectors.toList());
-        Page<ProductOrderMapEntity> productOrderMapEntities = productOrderMapRepository
-                .findAllByOrderIdIn(orderIds, pageable);
-        if (Objects.isNull(productOrderMapEntities) || productOrderMapEntities.isEmpty()) {
-            return Page.empty();
-        }
-
-        Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
-                .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
-
-        List<StateOrderEntity> stateOrderEntities = stateOrderRepository.findAllByOrderIdIn(orderIds);
-
-        Map<Long, StateOrderEntity> stateOrderEntityMap = stateOrderEntities
-                .stream().collect(Collectors.toMap(StateOrderEntity::getOrderId, Function.identity()));
-
-        Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
-                stateOrderEntities.stream().map(StateOrderEntity::getCancelerId).collect(Collectors.toSet())
-        ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
-
-        List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
-        for (Long orderId : orderIds) {
-            List<ProductOrderMapEntity> productOrderMapEntityList = productOrderMapEntityMap.get(orderId);
-            StateOrderEntity stateOrderEntity = stateOrderEntityMap.get(orderId);
-            List<ProductOrderOutput> productOrderOutputs = new ArrayList<>();
-            int totalPrice = 0;
-            for (ProductOrderMapEntity productOrderMapEntity : productOrderMapEntityList) {
-                ProductOrderOutput productOrderOutput = ProductOrderOutput.builder()
-                        .productId(productOrderMapEntity.getProductId())
-                        .productName(productOrderMapEntity.getNameProduct())
-                        .image(productOrderMapEntity.getImage())
-                        .quantityOrder(productOrderMapEntity.getQuantityOrder())
-                        .price(productOrderMapEntity.getPrice())
-                        .totalPrice(productOrderMapEntity.getTotalPrice())
-                        .build();
-                totalPrice += productOrderOutput.getTotalPrice();
-                productOrderOutputs.add(productOrderOutput);
-            }
-            if (Objects.isNull(stateOrderEntity)) {
-                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
-                        .orderId(orderId)
-                        .productOrderOutputs(productOrderOutputs)
-                        .state(state)
-                        .totalPrice(totalPrice)
-                        .build();
-                productOrdersOutputs.add(productOrdersOutput);
-            } else {
-                UserEntity userEntity = userEntityMap.get(stateOrderEntity.getCancelerId());
-                CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
-                        .reason(stateOrderEntity.getReason())
-                        .name(userEntity.getFullName())
-                        .build();
-                ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
-                        .orderId(orderId)
-                        .productOrderOutputs(productOrderOutputs)
-                        .state(state)
-                        .totalPrice(totalPrice)
-                        .cancelOrderOutput(cancelOrderOutput)
-                        .build();
-                productOrdersOutputs.add(productOrdersOutput);
-            }
-        }
-
-        return new PageImpl<>(productOrdersOutputs, pageable, productOrderMapEntities.getTotalElements());
     }
 }
