@@ -14,7 +14,7 @@ public class CashPayment implements Payment {
     @Override
     public void payment(UserOrderEntity userOrderEntity) {
         userOrderEntity.setPaymentMethod("Tiền mặt");
-        userOrderEntity.setState(Common.WAITING_DELIVERY);
+        userOrderEntity.setState(Common.PENDING_PAYMENT);
         userOrderRepository.save(userOrderEntity);
     }
 }

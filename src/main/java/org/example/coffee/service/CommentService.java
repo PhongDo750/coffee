@@ -39,9 +39,6 @@ public class CommentService {
     public void createComment(String accessToken, CommentInput commentInput, List<MultipartFile> multipartFiles) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
-        if (userEntity.getIsShop().equals(Boolean.TRUE)) {
-            throw new RuntimeException(Common.ACTION_FAIL);
-        }
 
         CommentEntity commentEntity = CommentEntity.builder()
                 .userId(userId)
@@ -64,9 +61,6 @@ public class CommentService {
                               List<MultipartFile> multipartFiles) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
-        if (userEntity.getIsShop().equals(Boolean.TRUE)) {
-            throw new RuntimeException(Common.ACTION_FAIL);
-        }
 
         CommentEntity commentEntity = customRepository.getCommentBy(commentId);
         if (!commentEntity.getUserId().equals(userId)) {
@@ -97,6 +91,7 @@ public class CommentService {
                     return CommentOutput.builder()
                             .userId(commentEntity.getUserId())
                             .nameUser(userEntity.getFullName())
+                            .commentId(commentEntity.getId())
                             .image(userEntity.getImage())
                             .comment(commentEntity.getComment())
                             .rating(commentEntity.getRating())

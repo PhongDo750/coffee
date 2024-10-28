@@ -14,6 +14,7 @@ public class CommentOutput {
     private Long id;
     private Long userId;
     private String nameUser;
+    private Long commentId;
     private String image;
     private String comment;
     private Long rating;

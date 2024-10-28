@@ -34,7 +34,7 @@ public class CommentController {
     }
 
     @Operation(summary = "Update comment")
-    @PutMapping("/update")
+    @PostMapping("/update")
     public void updateComment(@RequestHeader("Authorization") String accessToken,
                               @RequestParam Long commentId,
                               @RequestPart(name = "commentInput") String commentInputString,

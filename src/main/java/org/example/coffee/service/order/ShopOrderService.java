@@ -43,6 +43,9 @@ public class ShopOrderService {
         }
 
         UserOrderEntity userOrderEntity = customRepository.getUserOrder(orderId);
+        if(!userOrderEntity.getState().equals(Common.PENDING_PAYMENT)) {
+            throw new RuntimeException(Common.ACTION_FAIL);
+        }
         userOrderEntity.setState(Common.WAITING_DELIVERY);
         userOrderRepository.save(userOrderEntity);
     }
@@ -56,7 +59,9 @@ public class ShopOrderService {
         }
 
         UserOrderEntity userOrderEntity = customRepository.getUserOrder(cancelOrderInput.getOrderId());
-
+        if(!userOrderEntity.getState().equals(Common.PENDING_PAYMENT)) {
+            throw new RuntimeException(Common.ACTION_FAIL);
+        }
         userOrderEntity.setState(Common.CANCELED);
         userOrderEntity.setCancelerId(shopId);
         userOrderEntity.setReasonCancellation(cancelOrderInput.getReason());

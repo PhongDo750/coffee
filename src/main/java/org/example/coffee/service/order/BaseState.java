@@ -1,12 +1,9 @@
 package org.example.coffee.service.order;
 
 import lombok.AllArgsConstructor;
-import org.example.coffee.common.Common;
-import org.example.coffee.dto.order.CancelOrderOutput;
 import org.example.coffee.dto.order.ProductOrderOutput;
 import org.example.coffee.dto.order.ProductOrdersOutput;
 import org.example.coffee.entity.ProductOrderMapEntity;
-import org.example.coffee.entity.UserEntity;
 import org.example.coffee.entity.UserOrderEntity;
 import org.example.coffee.repository.ProductOrderMapRepository;
 import org.springframework.data.domain.Page;
@@ -18,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
